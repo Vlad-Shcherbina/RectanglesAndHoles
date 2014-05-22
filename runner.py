@@ -4,6 +4,7 @@ import subprocess
 from timeit import default_timer
 import multiprocessing
 import pprint
+import math
 
 
 def run_solution(command, seed):
@@ -25,7 +26,11 @@ def run_solution(command, seed):
                 result[var.strip()] = eval(value)
 
         result['time'] = default_timer() - start
+
+        assert result['Score'] > 0
+        result['log_score'] = math.log(result['Score'])
         assert 'n' in result
+
         return result
     except Exception as e:
         print e
