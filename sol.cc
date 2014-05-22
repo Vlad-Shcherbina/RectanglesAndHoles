@@ -1,5 +1,7 @@
 #include <vector>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 
 using namespace std;
@@ -8,6 +10,7 @@ using namespace std;
 class RectanglesAndHoles {
 public:
   vector<int> place(vector<int> A, vector<int> B) {
+    cerr << "n = " << A.size() << endl;
     vector<int> result;
     for (int i = 0; i < A.size(); i++) {
       int idx = i / 4;
@@ -46,6 +49,10 @@ int main(int argc, char *argv[]) {
     cin >> B[i];
 
   auto result = RectanglesAndHoles().place(A, B);
+  cerr.flush();
+  // to ensure that java runner picks up stderr
+  this_thread::sleep_for(chrono::milliseconds(200));
+
   for (int r : result)
     cout << r << endl;
   cout.flush();
