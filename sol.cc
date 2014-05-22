@@ -161,6 +161,7 @@ public:
 };
 
 
+#ifndef SUBMISSION
 int main(int argc, char *argv[]) {
   int n;
   cin >> n;
@@ -180,3 +181,4 @@ int main(int argc, char *argv[]) {
   cout.flush();
   return 0;
 }
+#endif
