@@ -389,7 +389,7 @@ vector<Packer> make_packers(Coord size) {
   result.push_back(make_grid_packer(size, 3, 3));
   result.push_back(make_grid_packer(size, 3, 5));
   result.push_back(make_grid_packer(size, 5, 3));
-  result.push_back(make_grid_packer(size, 5, 5));
+  //result.push_back(make_grid_packer(size, 5, 5));
 
   reverse(result.begin(), result.end());
   return result;

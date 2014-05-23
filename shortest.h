@@ -11,7 +11,7 @@ using namespace std;
 
 
 const int INF = 10000000;
-const int MAX_VARS = 100;
+const int MAX_VARS = 64;
 
 class Shortest {
 public:
