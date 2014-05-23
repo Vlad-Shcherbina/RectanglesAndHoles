@@ -76,8 +76,16 @@ public:
 
     solution.push_back(make_circle(for_circle));
 
+    int i = 0;
     while (true) {
-      auto lc = find_largest_corner(solution.back());
+      bool flip_x = i % 2 == 0;
+      bool flip_y = i / 2 % 2 == 0;
+      i++;
+
+      auto hz = solution.back();
+      transform(hz, 0, 0, flip_x, flip_y, false);
+
+      auto lc = find_largest_corner(hz);
       // cerr << "largest corner: " << lc << endl;
       auto packers = make_packers(Coord(lc.second.X - lc.first.X, lc.second.Y - lc.first.Y));
 
@@ -87,6 +95,7 @@ public:
           continue;
         auto t = packer.place();
         transform(t, lc.first.X, lc.first.Y, false, false, false);
+        transform(t, 0, 0, flip_x, flip_y, false);
         copy(t.begin(), t.end(), back_inserter(solution.back()));
         solved = true;
         break;

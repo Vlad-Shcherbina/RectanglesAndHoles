@@ -127,6 +127,9 @@ pair<Coord, Coord> find_largest_corner(const vector<BoxPlacement> &bps) {
   for (auto cand : candidates) {
     if (find_intersection(bps, cand, Coord(cand.X + 2000, cand.Y + 2000)) != -1)
       continue;
+    if (find_intersection(bps, cand, Coord(cand.X + 1, cand.Y + 2000000)) != -1 &&
+        find_intersection(bps, cand, Coord(cand.X + 2000000, cand.Y + 1)) != -1)
+      continue;
     int i1 = find_intersection(
         bps, Coord(cand.X, cand.Y - 1), Coord(cand.X + 1, cand.Y));
     if (i1 == -1)
