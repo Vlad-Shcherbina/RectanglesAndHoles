@@ -15,11 +15,11 @@ def main():
     with open('by_size.txt') as fin:
         by_size = eval(fin.read())
 
-    sizes = range(100, 105) + range(500, 505) + range(996, 1001)
+    sizes = range(100, 1001, 100)
 
-    tasks = [('./a.out', by_size[n][i]) for i in range(3) for n in sizes]
+    tasks = [('./a.out', by_size[n][i]) for i in range(5) for n in sizes]
 
-    map = multiprocessing.Pool(5).imap
+    map = multiprocessing.Pool(15).imap
 
     with run_db.RunRecorder() as run:
         for result in map(worker, tasks):
