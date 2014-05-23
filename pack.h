@@ -339,6 +339,10 @@ Packer make_grid_packer(Coord size, int H, int W) {
 vector<Packer> make_packers(Coord size) {
   vector<Packer> result;
 
+  result.push_back(make_grid_packer(size, 1, 1));
+  result.push_back(make_grid_packer(size, 1, 3));
+  result.push_back(make_grid_packer(size, 3, 1));
+
   Packer p;
 
   p.size = size;
@@ -365,26 +369,30 @@ vector<Packer> make_packers(Coord size) {
   p.doesnt_touch_left(mid);
   p.v_touch(mid, top_border);
   p.h_space(mid, right_border);
+  p.symbolic_bps.push_back(mid);
 
   p.touches_left(a);
   p.doesnt_touch_bottom(a);
   p.h_touch(a, mid);
   p.v_space(a, top_border);
-
-  p.touches_bottom(b);
-  p.doesnt_touch_left(b);
-  p.v_touch(b, a);
-  p.h_space(b, mid);
-
-  p.symbolic_bps.push_back(mid);
   p.symbolic_bps.push_back(a);
-  p.symbolic_bps.push_back(b);
+  result.push_back(p);
 
-  //result.push_back(p);
+  auto p2 = p;
+  p2.touches_bottom(b);
+  p2.doesnt_touch_left(b);
+  p2.v_touch(b, a);
+  p2.h_space(b, mid);
+  p2.symbolic_bps.push_back(b);
+  result.push_back(p2);
 
-  result.push_back(make_grid_packer(size, 1, 1));
-  result.push_back(make_grid_packer(size, 1, 3));
-  result.push_back(make_grid_packer(size, 3, 1));
+  /*p2 = p;
+  p2.h_touch(mid, b);
+  p2.h_touch(b, right_border);
+  p2.doesnt_touch_bottom(b);
+  p2.v_space(b, top_border);
+  p2.symbolic_bps.push_back(b);
+  result.push_back(p2);*/
 
   result.push_back(make_grid_packer(size, 3, 3));
   result.push_back(make_grid_packer(size, 3, 5));
