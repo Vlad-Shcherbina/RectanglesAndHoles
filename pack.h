@@ -259,7 +259,7 @@ public:
 };
 
 
-Packer make_grid_packer(Coord size) {
+Packer make_grid_packer(Coord size, int H, int W) {
   Packer p;
 
   p.size = size;
@@ -275,26 +275,62 @@ Packer make_grid_packer(Coord size) {
   p.touches_left(top);
   p.doesnt_touch_bottom(top);
 
-  const int H = 3;
-  const int W = 3;
+  //p.h_touch(top, right);
+  p.v_touch(right, top);
+
+  //const int H = 5;
+  //const int W = 5;
 
   map<int, BoxPlacement> q;
+
+  p.symbolic_bps = {top, right};
+  for (int i = 0; i < W; i++)
+    for (int j = 0; j < H; j++) {
+      if ((i + j) % 2 == 0)
+        continue;
+      q[j * 10 + i] = p.make_symbolic_placement(
+          string("inner") + to_string(j * 10 + i));
+      p.symbolic_bps.push_back(q[j * 10 + i]);
+    }
 
   for (int i = 0; i < W; i++)
     for (int j = 0; j < H; j++) {
       if ((i + j) % 2 == 0)
         continue;
-      q[j * 10 + i] = p.make_symbolic_placement("qq");
-    }
+      int idx = 10 * j + i;
+      if (i == 0) {
+        p.touches_left(q[idx]);
+      } else if (i == 1) {
+        p.doesnt_touch_left(q[idx]);
+      } else {
+        p.h_space(q[idx - 2], q[idx]);
+      }
+      if (i == W - 1) {
+        p.h_touch(q[idx], right);
+      } else if (i == W - 2) {
+        p.h_space(q[idx], right);
+      }
 
-  for (int i = 0; i < W; i++)
-    for (int j = 0; j < H; j++) {
-      /*if ((i + j) % 2 == 0)
-        continue;*/
-      //map[j * 10 + i] = BoxPlacement();
-    }
+      if (j == 0) {
+        p.touches_bottom(q[idx]);
+      } else if (j == 1) {
+        p.doesnt_touch_bottom(q[idx]);
+      } else {
+        p.v_space(q[idx - 20], q[idx]);
+      }
+      if (j == H - 1) {
+        p.v_touch(q[idx], top);
+      } else if (j == H - 2) {
+        p.v_space(q[idx], top);
+      }
 
-  p.symbolic_bps = {top, right};
+      if (i > 0 && j > 0) {
+        p.h_touch(q[idx - 11], q[idx]);
+      }
+      if (i > 0 && j < H - 1) {
+        p.v_touch(q[idx], q[idx + 9]);
+      }
+    }
 
   return p;
 }
@@ -322,7 +358,7 @@ vector<Packer> make_packers(Coord size) {
   p.h_touch(top_border, right_border);
 
   p.symbolic_bps = {top_border, right_border};
-  result.push_back(p);
+  //result.push_back(p);
 
   p.touches_bottom(mid);
   p.doesnt_touch_left(mid);
@@ -343,9 +379,17 @@ vector<Packer> make_packers(Coord size) {
   p.symbolic_bps.push_back(a);
   p.symbolic_bps.push_back(b);
 
-  result.push_back(p);
+  //result.push_back(p);
 
-  //result.push_back(make_grid_packer(size));
+  result.push_back(make_grid_packer(size, 1, 1));
+  result.push_back(make_grid_packer(size, 1, 3));
+  result.push_back(make_grid_packer(size, 3, 1));
+
+  result.push_back(make_grid_packer(size, 3, 3));
+  result.push_back(make_grid_packer(size, 3, 5));
+  result.push_back(make_grid_packer(size, 5, 3));
+  result.push_back(make_grid_packer(size, 5, 5));
+
   reverse(result.begin(), result.end());
   return result;
 }
