@@ -187,7 +187,7 @@ public:
     }
 
     // remove used boxes from the list
-    auto p = remove_if(boxes->begin(), boxes->end(), [&box_indices](Box b) {
+    auto p = remove_if(boxes->begin(), boxes->end(), [this](Box b) {
       return find(box_indices.begin(), box_indices.end(), b.index) != box_indices.end();
     });
     boxes->erase(p, boxes->end());
