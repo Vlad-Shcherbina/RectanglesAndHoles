@@ -100,3 +100,43 @@ void transform(
     bp.top_right = top_right;
   }
 }
+
+
+int find_intersection(
+    const vector<BoxPlacement> &bps, Coord bottom_left, Coord top_right) {
+  auto p = find_if(bps.begin(), bps.end(),
+      [&](BoxPlacement bp) { return bp.intersect(bottom_left, top_right); });
+  if (p == bps.end())
+    return -1;
+  return p - bps.begin();
+}
+
+
+pair<Coord, Coord> find_largest_corner(const vector<BoxPlacement> &bps) {
+  set<Coord> candidates;
+  for (auto bp : bps) {
+    candidates.insert({bp.bottom_left.X, bp.top_right.Y});
+    candidates.insert({bp.top_right.X, bp.bottom_left.Y});
+  }
+  int best_area = -1;
+  pair<Coord, Coord> best = {{0, 0}, {0, 0}};
+  for (auto cand : candidates) {
+    if (find_intersection(bps, cand, Coord(cand.X + 300000, cand.Y + 300000)) != -1)
+      continue;
+    int i1 = find_intersection(
+        bps, Coord(cand.X, cand.Y - 1), Coord(cand.X + 1, cand.Y));
+    if (i1 == -1)
+      continue;
+    int i2 = find_intersection(
+        bps, Coord(cand.X - 1, cand.Y), Coord(cand.X, cand.Y + 1));
+    if (i2 == -1)
+      continue;
+    pair<Coord, Coord> cur = {cand, {bps[i1].top_right.X, bps[i2].top_right.Y}};
+    int area = (cur.second.X - cur.first.X) * (cur.second.Y - cur.first.Y);
+    if (area > best_area) {
+      best_area = area;
+      best = cur;
+    }
+  }
+  return best;
+}

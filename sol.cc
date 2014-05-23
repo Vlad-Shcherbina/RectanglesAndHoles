@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdlib>
 
+#include "pretty_printing.h"
+
 #include "shortest.h"
 
 
@@ -14,6 +16,32 @@ using namespace std;
 
 #include "box.h"
 #include "circle.h"
+
+
+bool place_in_corner(vector<BoxPlacement> &bps, vector<Box> &boxes) {
+  if (boxes.size() < 2)
+    return false;
+  auto lc = find_largest_corner(bps);
+  cerr << "largest corner: " << lc << endl;
+
+  for (int i = 0; i < boxes.size(); i++) {
+    if (boxes[i].b <= lc.second.Y - lc.first.Y) {
+      int j = i ? 0 : 1;
+      bps.push_back(BoxPlacement::from_box(
+          boxes[i], {min(lc.second.X, lc.first.X + boxes[j].a), lc.first.Y}));
+      bps.push_back(BoxPlacement::from_box(
+          boxes[j], {lc.first.X, lc.first.Y + boxes[i].b}));
+      assert(i != j);
+      if (i < j)
+        swap(i, j);
+      boxes.erase(boxes.begin() + i);
+      boxes.erase(boxes.begin() + j);
+      return true;
+    }
+  }
+
+  return false;
+}
 
 
 class RectanglesAndHoles {
@@ -41,45 +69,17 @@ public:
 
     vector<vector<BoxPlacement> > solution;
 
-    int k = A.size() / 2;
+    int k = 45 * A.size() / 100;
     vector<Box> for_circle(sorted_boxes.begin(), sorted_boxes.begin() + k);
     sorted_boxes.erase(sorted_boxes.begin(), sorted_boxes.begin() + k);
 
     solution.push_back(make_circle(for_circle));
 
-    vector<int> result;
-    for (int i = 0; i + 4 <= sorted_boxes.size(); i += 4) {
-      int x = 0;
-      int y = 0;
+    while (place_in_corner(solution.back(), sorted_boxes)) {}
 
+    for (auto box : sorted_boxes) {
       solution.emplace_back();
-
-      auto box1 = sorted_boxes[i];
-      auto box2 = sorted_boxes[i + 2];
-      auto box3 = sorted_boxes[i + 1];
-      auto box4 = sorted_boxes[i + 3];
-      swap(box2.a, box2.b);
-      swap(box4.a, box4.b);
-
-      int w = min(box1.a, box3.a);
-      int h = min(box2.b, box4.b);
-
-      solution.back().push_back(BoxPlacement::from_box(
-        box1, Coord(x, y - box1.b)));
-
-      solution.back().push_back(BoxPlacement::from_box(
-        box2, Coord(x + w, y)));
-
-      solution.back().push_back(BoxPlacement::from_box(
-        box3, Coord(x + w - box3.a, y + h)));
-
-      solution.back().push_back(BoxPlacement::from_box(
-        box4, Coord(x - box4.a, y + h - box4.b)));
-    }
-
-    for (int i = sorted_boxes.size() / 4 * 4; i < sorted_boxes.size(); i++) {
-      solution.push_back({BoxPlacement::from_box(
-          sorted_boxes[i], Coord(0, 0))});
+      solution.back().push_back(BoxPlacement::from_box(box, {0, 0}));
     }
 
     return box_placements_to_result(repack_placements(solution));
