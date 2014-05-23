@@ -10,7 +10,7 @@ def worker(task):
 
 
 def main():
-    runner.compile()
+    runner.compile(release=True)
 
     with open('by_size.txt') as fin:
         by_size = eval(fin.read())

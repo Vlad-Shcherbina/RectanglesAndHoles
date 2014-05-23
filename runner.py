@@ -21,7 +21,7 @@ def run_solution(command, seed):
 
         result = {}
         for line in out.splitlines():
-            var, _, value = line.strip().partition('=')
+            var, _, value = line.strip().partition(' = ')
             if value:
                 result[var.strip()] = eval(value)
 
@@ -42,8 +42,15 @@ def grouping_task(seed):
     return seed, sol['n']
 
 
-def compile():
-    subprocess.check_call('g++ --std=c++0x sol.cc', shell=True)
+def compile(release=False):
+    if release:
+        subprocess.check_call(
+            'g++ --std=c++0x '
+            '-W -Wall -Wno-sign-compare '
+            '-O2 -s -pipe -mmmx -msse -msse2 -msse3 '
+            'sol.cc', shell=True)
+    else:
+        subprocess.check_call('g++ --std=c++0x sol.cc', shell=True)
 
 
 def main():
