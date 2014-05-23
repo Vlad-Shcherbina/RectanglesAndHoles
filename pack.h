@@ -161,7 +161,8 @@ public:
 
     cnt = 0;
     rec(ss);
-    cerr << cnt << " rec calls" << endl;
+    if (cnt > 100)
+      cerr << cnt << " rec calls" << endl;
 
     return solution_found;
   }

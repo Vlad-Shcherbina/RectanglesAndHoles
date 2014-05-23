@@ -94,6 +94,7 @@ public:
         if (!packer.solve(&sorted_boxes))
           continue;
         auto t = packer.place();
+        cerr << t.size() << " blocks" << endl;
         transform(t, lc.first.X, lc.first.Y, false, false, false);
         transform(t, 0, 0, flip_x, flip_y, false);
         copy(t.begin(), t.end(), back_inserter(solution.back()));
