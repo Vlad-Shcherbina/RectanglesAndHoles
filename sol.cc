@@ -76,18 +76,23 @@ public:
 
     solution.push_back(make_circle(for_circle));
 
-
     while (true) {
       auto lc = find_largest_corner(solution.back());
       // cerr << "largest corner: " << lc << endl;
-      Packer packer(
-          Coord(lc.second.X - lc.first.X, lc.second.Y - lc.first.Y),
-          &sorted_boxes);
-      if (!packer.solution_found)
+      auto packers = make_packers(Coord(lc.second.X - lc.first.X, lc.second.Y - lc.first.Y));
+
+      bool solved = false;
+      for (auto &packer : packers) {
+        if (!packer.solve(&sorted_boxes))
+          continue;
+        auto t = packer.place();
+        transform(t, lc.first.X, lc.first.Y, false, false, false);
+        copy(t.begin(), t.end(), back_inserter(solution.back()));
+        solved = true;
         break;
-      auto t = packer.place();
-      transform(t, lc.first.X, lc.first.Y, false, false, false);
-      copy(t.begin(), t.end(), back_inserter(solution.back()));
+      }
+      if (!solved)
+        break;
     }
 
     //while (place_in_corner(solution.back(), sorted_boxes)) {}

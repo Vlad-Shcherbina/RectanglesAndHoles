@@ -39,8 +39,9 @@ public:
     ys.add_constraint(sbp.bottom_left.Y, y0, 0);
     ys.add_constraint(y0, sbp.bottom_left.Y, 0);
     xs.add_constraint(sbp.bottom_left.X, x0, size.X);
+  }
 
-    // does not touch left
+  void doesnt_touch_left(BoxPlacement sbp) {
     xs.add_constraint(x0, sbp.bottom_left.X, -1);
   }
 
@@ -49,8 +50,9 @@ public:
     xs.add_constraint(sbp.bottom_left.X, x0, 0);
     xs.add_constraint(y0, sbp.bottom_left.X, 0);
     ys.add_constraint(sbp.bottom_left.Y, y0, size.Y);
+  }
 
-    // does not touch bottom
+  void doesnt_touch_bottom(BoxPlacement sbp) {
     ys.add_constraint(y0, sbp.bottom_left.Y, -1);
   }
 
@@ -135,29 +137,8 @@ public:
     return true;
   }
 
-  Packer(Coord size, vector<Box> *boxes)
-      : size(size), boxes(boxes) {
-    x0 = xs.add_var("x0");
-    y0 = ys.add_var("y0");
-
-    // precompute
-    // cerr << "Packing for corner of size " << size << endl;
-
-    auto right_border = make_symbolic_placement("right_border_");
-    auto top_border = make_symbolic_placement("top_border_");
-    auto mid = make_symbolic_placement("mid_");
-
-    touches_bottom(right_border);
-    touches_left(top_border);
-
-    h_touch(top_border, right_border);
-
-    touches_bottom(mid);
-    v_touch(mid, top_border);
-
-    h_space(mid, right_border);
-
-    symbolic_bps = {top_border, right_border, mid};
+  bool solve(vector<Box> *boxes) {
+    this->boxes = boxes;
 
     SearchState ss;
     ss.concrete = vector<bool>(symbolic_bps.size(), false);
@@ -174,18 +155,15 @@ public:
     solution_found = false;
 
     if (xs.empty || ys.empty)
-      return;
+      return false;
     if (!strengthen_constraints(ss))
-      return;
+      return false;
 
+    cnt = 0;
     rec(ss);
+    cerr << cnt << " rec calls" << endl;
 
-    // if (solution_found) {
-    //   cerr << "solution:" << endl;
-    //   cerr << box_indices << endl;
-    //   cerr << xs.vars << concrete_xs << endl;
-    //   cerr << ys.vars << concrete_ys << endl;
-    // }
+    return solution_found;
   }
 
   vector<BoxPlacement> place() {
@@ -216,6 +194,8 @@ public:
     return result;
   }
 
+  int cnt;
+
   bool solution_found;
   vector<int> concrete_xs;
   vector<int> concrete_ys;
@@ -224,6 +204,7 @@ public:
   void rec(SearchState ss) {
     if (solution_found)
       return;
+    cnt++;
     if (find(ss.concrete.begin(), ss.concrete.end(), false) == ss.concrete.end()) {
       // cerr << "FOUND" << endl;
       box_indices.clear();
@@ -276,3 +257,95 @@ public:
     }
   }
 };
+
+
+Packer make_grid_packer(Coord size) {
+  Packer p;
+
+  p.size = size;
+  p.x0 = p.xs.add_var("x0");
+  p.y0 = p.ys.add_var("y0");
+
+  auto right = p.make_symbolic_placement("right_");
+  auto top = p.make_symbolic_placement("top_");
+
+
+  p.touches_bottom(right);
+  p.doesnt_touch_left(right);
+  p.touches_left(top);
+  p.doesnt_touch_bottom(top);
+
+  const int H = 3;
+  const int W = 3;
+
+  map<int, BoxPlacement> q;
+
+  for (int i = 0; i < W; i++)
+    for (int j = 0; j < H; j++) {
+      if ((i + j) % 2 == 0)
+        continue;
+      q[j * 10 + i] = p.make_symbolic_placement("qq");
+    }
+
+  for (int i = 0; i < W; i++)
+    for (int j = 0; j < H; j++) {
+      /*if ((i + j) % 2 == 0)
+        continue;*/
+      //map[j * 10 + i] = BoxPlacement();
+    }
+
+  p.symbolic_bps = {top, right};
+
+  return p;
+}
+
+vector<Packer> make_packers(Coord size) {
+  vector<Packer> result;
+
+  Packer p;
+
+  p.size = size;
+  p.x0 = p.xs.add_var("x0");
+  p.y0 = p.ys.add_var("y0");
+
+  auto right_border = p.make_symbolic_placement("right_border_");
+  auto top_border = p.make_symbolic_placement("top_border_");
+  auto mid = p.make_symbolic_placement("mid_");
+  auto a = p.make_symbolic_placement("a_");
+  auto b = p.make_symbolic_placement("b_");
+
+  p.touches_bottom(right_border);
+  p.doesnt_touch_left(right_border);
+  p.touches_left(top_border);
+  p.doesnt_touch_bottom(top_border);
+
+  p.h_touch(top_border, right_border);
+
+  p.symbolic_bps = {top_border, right_border};
+  result.push_back(p);
+
+  p.touches_bottom(mid);
+  p.doesnt_touch_left(mid);
+  p.v_touch(mid, top_border);
+  p.h_space(mid, right_border);
+
+  p.touches_left(a);
+  p.doesnt_touch_bottom(a);
+  p.h_touch(a, mid);
+  p.v_space(a, top_border);
+
+  p.touches_bottom(b);
+  p.doesnt_touch_left(b);
+  p.v_touch(b, a);
+  p.h_space(b, mid);
+
+  p.symbolic_bps.push_back(mid);
+  p.symbolic_bps.push_back(a);
+  p.symbolic_bps.push_back(b);
+
+  result.push_back(p);
+
+  //result.push_back(make_grid_packer(size));
+  reverse(result.begin(), result.end());
+  return result;
+}
