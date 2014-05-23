@@ -9,6 +9,10 @@ struct Box {
   int b;
 };
 
+ostream& operator<<(ostream &out, const Box &b) {
+  out << "Box(" << b.index << ", " << b.a << ", " << b.b << ")";
+  return out;
+}
 
 struct BoxPlacement {
   int index;
@@ -121,7 +125,7 @@ pair<Coord, Coord> find_largest_corner(const vector<BoxPlacement> &bps) {
   int best_area = -1;
   pair<Coord, Coord> best = {{0, 0}, {0, 0}};
   for (auto cand : candidates) {
-    if (find_intersection(bps, cand, Coord(cand.X + 300000, cand.Y + 300000)) != -1)
+    if (find_intersection(bps, cand, Coord(cand.X + 2000, cand.Y + 2000)) != -1)
       continue;
     int i1 = find_intersection(
         bps, Coord(cand.X, cand.Y - 1), Coord(cand.X + 1, cand.Y));

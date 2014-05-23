@@ -106,6 +106,7 @@ public:
   }
 
   void push() {
+    assert(!empty);
     milestones.push_back(undo_history.size());
   }
 
@@ -119,9 +120,11 @@ public:
       undo_history.pop_back();
       diffs[p.first] = p.second;
     }
+    empty = false;
   }
 
   vector<int> any_solution() {
+    assert(!empty);
     push();
     int x1 = 0;
     for (int x2 = 1; x2 < vars.size(); x2++) {
@@ -140,9 +143,9 @@ public:
     }
     assert(!empty);
     pop();
-    int m = *min_element(result.begin(), result.end());
+    /*int m = *min_element(result.begin(), result.end());
     for (int x = 0; x < result.size(); x++)
-      result[x] -= m;
+      result[x] -= m;*/
     return result;
   }
 };
@@ -176,4 +179,5 @@ ostream& operator<<(ostream& out, Shortest& s) {
   }
   if (cnt == 0)
     out << "ANYTHING" << endl;
+  return out;
 }

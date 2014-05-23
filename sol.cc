@@ -16,6 +16,7 @@ using namespace std;
 
 #include "box.h"
 #include "circle.h"
+#include "pack.h"
 
 
 bool place_in_corner(vector<BoxPlacement> &bps, vector<Box> &boxes) {
@@ -75,7 +76,21 @@ public:
 
     solution.push_back(make_circle(for_circle));
 
-    while (place_in_corner(solution.back(), sorted_boxes)) {}
+
+    while (true) {
+      auto lc = find_largest_corner(solution.back());
+      // cerr << "largest corner: " << lc << endl;
+      Packer packer(
+          Coord(lc.second.X - lc.first.X, lc.second.Y - lc.first.Y),
+          &sorted_boxes);
+      if (!packer.solution_found)
+        break;
+      auto t = packer.place();
+      transform(t, lc.first.X, lc.first.Y, false, false, false);
+      copy(t.begin(), t.end(), back_inserter(solution.back()));
+    }
+
+    //while (place_in_corner(solution.back(), sorted_boxes)) {}
 
     for (auto box : sorted_boxes) {
       solution.emplace_back();
