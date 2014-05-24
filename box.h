@@ -7,6 +7,9 @@ struct Box {
   int index;
   int a;
   int b;
+  int diag2() const {
+    return a * a + b * b;
+  }
 };
 
 ostream& operator<<(ostream &out, const Box &b) {

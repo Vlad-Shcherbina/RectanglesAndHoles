@@ -66,7 +66,7 @@ public:
       sorted_boxes.push_back(box);
     }
     sort(sorted_boxes.begin(), sorted_boxes.end(),
-        [](Box b1, Box b2) {return b1.a > b2.a; });
+        [](Box b1, Box b2) {return b1.diag2() > b2.diag2(); });
 
     vector<vector<BoxPlacement> > solution;
 
