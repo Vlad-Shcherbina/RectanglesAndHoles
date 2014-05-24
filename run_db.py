@@ -9,7 +9,7 @@ import collections
 
 
 DIR = 'runs'
-MAX_DIFF_SIZE = 1000
+MAX_DIFF_SIZE = 10000
 
 
 class RunRecorder(object):
