@@ -5,7 +5,8 @@ public:
   int64_t full_area;
   int64_t area;
 
-  Arc(vector<Box> boxes) : boxes(boxes) {
+  Arc(const vector<Box> &boxes) : boxes(boxes) {
+    assert(!boxes.empty());
     precompute();
   }
 
@@ -117,7 +118,7 @@ pair<int64_t, vector<BoxPlacement>> make_random_circle(const vector<Box> &boxes)
 vector<BoxPlacement> make_circle(vector<Box> boxes) {
   pair<int64_t, vector<BoxPlacement>> best;
   best.first = -1;
-  int n = boxes.size() < 200 ? 5000 : 1000;
+  int n = boxes.size() < 100 ? 10000 : boxes.size() < 200 ? 5000 : 1000;
   for (int i = 0; i < n; i++) {
     auto cur = make_random_circle(boxes);
     if (cur.first > best.first) {
