@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include <thread>
 #include <cmath>
@@ -149,6 +150,15 @@ int main(int argc, char *argv[]) {
     cin >> A[i];
   for (int i = 0; i < n; i++)
     cin >> B[i];
+
+  if (false) {
+    ofstream input_dump("input_dump.txt");
+    input_dump << n << endl;
+    for (int x : A)
+      input_dump << x << endl;
+    for (int x : B)
+      input_dump << x << endl;
+  }
 
   auto result = RectanglesAndHoles().place(A, B);
   cerr.flush();
