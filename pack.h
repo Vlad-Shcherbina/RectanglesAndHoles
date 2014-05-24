@@ -2,7 +2,7 @@
 struct SearchState {
   vector<bool> concrete;
   vector<vector<Box>> candidates;
-  set<int> taken_boxes;
+  vector<bool> taken_boxes;
 };
 
 
@@ -88,8 +88,7 @@ public:
     for (int i = 0; i < symbolic_bps.size(); i++) {
       if (ss.concrete[i]) {
         assert(ss.candidates[i].size() == 1);
-        assert(ss.taken_boxes.find(ss.candidates[i].front().index) !=
-               ss.taken_boxes.end());
+        assert(ss.taken_boxes[ss.candidates[i].front().index]);
         continue;
       }
       auto sbp = symbolic_bps[i];
@@ -100,10 +99,10 @@ public:
       int min_h = -ys.get_diff(sbp.bottom_left.Y, sbp.top_right.Y);
 
       vector<Box> new_candidates;
-      for (auto cand : ss.candidates[i]) {
-        if (ss.taken_boxes.find(cand.index) == ss.taken_boxes.end() &&
-            cand.a >= min_w && cand.a <= max_w &&
-            cand.b >= min_h && cand.b <= max_h) {
+      for (const auto &cand : ss.candidates[i]) {
+        if (cand.a >= min_w && cand.a <= max_w &&
+            cand.b >= min_h && cand.b <= max_h &&
+            !ss.taken_boxes[cand.index]) {
           new_candidates.push_back(cand);
         }
       }
@@ -151,6 +150,7 @@ public:
       }
     }
     ss.candidates = vector<vector<Box>>(symbolic_bps.size(), all_candidates);
+    ss.taken_boxes = vector<bool>(1000, false);
 
     solution_found = false;
 
@@ -261,7 +261,7 @@ public:
         continue;
       }
 
-      ss2.taken_boxes.insert(cand.index);
+      ss2.taken_boxes[cand.index] = true;
       ss2.candidates[idx] = {cand};
 
       if (strengthen_constraints(ss2))
