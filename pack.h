@@ -202,6 +202,13 @@ public:
   vector<int> concrete_ys;
   vector<int> box_indices;
 
+  void maximize_diff(Shortest &s, int var1, int var2) {
+    assert(!s.empty);
+    int d = s.get_diff(var1, var2);
+    assert(d < INF);
+    s.add_constraint(var2, var1, -d);
+  }
+
   void rec(SearchState ss) {
     if (solution_found)
       return;
@@ -214,6 +221,13 @@ public:
         assert(cs.size() == 1);
         box_indices.push_back(cs.front().index);
       }
+
+      // make sure that box occupies as much space as possible
+      maximize_diff(xs, symbolic_bps[0].bottom_left.X, x0);
+      maximize_diff(ys, symbolic_bps[0].bottom_left.Y, y0);
+      maximize_diff(xs, symbolic_bps[1].bottom_left.X, x0);
+      maximize_diff(ys, symbolic_bps[1].bottom_left.Y, y0);
+
       concrete_xs = xs.any_solution();
       concrete_ys = ys.any_solution();
       solution_found = true;
