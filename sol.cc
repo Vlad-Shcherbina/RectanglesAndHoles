@@ -77,9 +77,10 @@ public:
 
       bool solved = false;
       for (auto &packer : packers) {
-        if (!packer.solve(both_orientations(sorted_boxes)))
+        packer.solve(both_orientations(sorted_boxes));
+        if (packer.packings.empty())
           continue;
-        auto t = packer.place();
+        auto t = packer.packings.front().bps;
         cerr << t.size() << " blocks" << endl;
         transform(t, corner.origin.X, corner.origin.Y, false, false, false);
         transform(t, 0, 0, corner.flip_x, corner.flip_y, false);

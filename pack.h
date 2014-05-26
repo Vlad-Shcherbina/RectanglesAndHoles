@@ -6,6 +6,13 @@ struct SearchState {
 };
 
 
+struct Packing {
+  int min_width;
+  int min_height;
+  vector<BoxPlacement> bps;
+};
+
+
 class Packer {
 public:
   Coord size;
@@ -131,54 +138,23 @@ public:
     return true;
   }
 
-  bool solve(const vector<Box> all_candidates) {
+  void solve(const vector<Box> all_candidates) {
     SearchState ss;
     ss.concrete = vector<bool>(symbolic_bps.size(), false);
     ss.candidates = vector<vector<Box>>(symbolic_bps.size(), all_candidates);
     ss.taken_boxes = vector<bool>(1000, false);
 
-    solution_found = false;
-
     if (xs.empty || ys.empty)
-      return false;
+      return;
     if (!strengthen_constraints(ss))
-      return false;
+      return;
 
+    packings.clear();
     cnt = 0;
     rec(ss);
     if (cnt > 100)
       cerr << cnt << " rec calls" << endl;
-
-    return solution_found;
   }
-
-  vector<BoxPlacement> place() {
-    assert(solution_found);
-    assert(concrete_xs[x0] == 0);
-    assert(concrete_ys[y0] == 0);
-
-    vector<BoxPlacement> result;
-    for (int i = 0; i < symbolic_bps.size(); i++) {
-      auto sbp = symbolic_bps[i];
-      BoxPlacement bp;
-      bp.index = box_indices[i];
-      bp.bottom_left = {
-          concrete_xs[sbp.bottom_left.X],
-          concrete_ys[sbp.bottom_left.Y]};
-      bp.top_right = {
-          concrete_xs[sbp.top_right.X],
-          concrete_ys[sbp.top_right.Y]};
-      result.push_back(bp);
-    }
-    return result;
-  }
-
-  int cnt;
-
-  bool solution_found;
-  vector<int> concrete_xs;
-  vector<int> concrete_ys;
-  vector<int> box_indices;
 
   void maximize_diff(Shortest &s, int var1, int var2) {
     assert(!s.empty);
@@ -187,28 +163,55 @@ public:
     s.add_constraint(var2, var1, -d);
   }
 
+  Packing build_packing(const SearchState &ss) {
+    Packing packing;
+    // TODO: packing.min_width, min_height
+
+    xs.push();
+    ys.push();
+
+    // make sure that box occupies as much space as possible
+    maximize_diff(xs, symbolic_bps[0].bottom_left.X, x0);
+    maximize_diff(ys, symbolic_bps[0].bottom_left.Y, y0);
+    maximize_diff(xs, symbolic_bps[1].bottom_left.X, x0);
+    maximize_diff(ys, symbolic_bps[1].bottom_left.Y, y0);
+
+    auto concrete_xs = xs.any_solution();
+    auto concrete_ys = ys.any_solution();
+
+    assert(concrete_xs[x0] == 0);
+    assert(concrete_ys[y0] == 0);
+
+    vector<BoxPlacement> result;
+    for (int i = 0; i < symbolic_bps.size(); i++) {
+      assert(ss.candidates[i].size() == 1);
+      auto sbp = symbolic_bps[i];
+      BoxPlacement bp;
+      bp.index = ss.candidates[i].front().index;
+      bp.bottom_left = {
+          concrete_xs[sbp.bottom_left.X],
+          concrete_ys[sbp.bottom_left.Y]};
+      bp.top_right = {
+          concrete_xs[sbp.top_right.X],
+          concrete_ys[sbp.top_right.Y]};
+      packing.bps.push_back(bp);
+    }
+
+    xs.pop();
+    ys.pop();
+
+    return packing;
+  }
+
+  int cnt;
+  vector<Packing> packings;
+
   void rec(SearchState ss) {
-    if (solution_found)
+    if (!packings.empty())
       return;
     cnt++;
     if (find(ss.concrete.begin(), ss.concrete.end(), false) == ss.concrete.end()) {
-      // cerr << "FOUND" << endl;
-      box_indices.clear();
-      for (auto cs : ss.candidates) {
-        // cerr << cs.size() << " " << cs << endl;
-        assert(cs.size() == 1);
-        box_indices.push_back(cs.front().index);
-      }
-
-      // make sure that box occupies as much space as possible
-      maximize_diff(xs, symbolic_bps[0].bottom_left.X, x0);
-      maximize_diff(ys, symbolic_bps[0].bottom_left.Y, y0);
-      maximize_diff(xs, symbolic_bps[1].bottom_left.X, x0);
-      maximize_diff(ys, symbolic_bps[1].bottom_left.Y, y0);
-
-      concrete_xs = xs.any_solution();
-      concrete_ys = ys.any_solution();
-      solution_found = true;
+      packings.push_back(build_packing(ss));
       return;
     }
 
