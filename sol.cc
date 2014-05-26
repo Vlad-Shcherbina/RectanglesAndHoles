@@ -128,31 +128,35 @@ public:
 
 #ifndef SUBMISSION
 int main(int argc, char *argv[]) {
-  int n;
-  cin >> n;
-  vector<int> A(n), B(n);
-  for (int i = 0; i < n; i++)
-    cin >> A[i];
-  for (int i = 0; i < n; i++)
-    cin >> B[i];
+  while (true) {
+    int n;
+    cin >> n;
+    if (cin.eof())
+      break;
+    vector<int> A(n), B(n);
+    for (int i = 0; i < n; i++)
+      cin >> A[i];
+    for (int i = 0; i < n; i++)
+      cin >> B[i];
 
-  if (false) {
-    ofstream input_dump("input_dump.txt");
-    input_dump << n << endl;
-    for (int x : A)
-      input_dump << x << endl;
-    for (int x : B)
-      input_dump << x << endl;
+    if (false) {
+      ofstream input_dump("input_dump.txt");
+      input_dump << n << endl;
+      for (int x : A)
+        input_dump << x << endl;
+      for (int x : B)
+        input_dump << x << endl;
+    }
+
+    auto result = RectanglesAndHoles().place(A, B);
+    cerr.flush();
+    // to ensure that java runner picks up stderr
+    this_thread::sleep_for(chrono::milliseconds(200));
+
+    for (int r : result)
+      cout << r << endl;
+    cout.flush();
   }
-
-  auto result = RectanglesAndHoles().place(A, B);
-  cerr.flush();
-  // to ensure that java runner picks up stderr
-  this_thread::sleep_for(chrono::milliseconds(200));
-
-  for (int r : result)
-    cout << r << endl;
-  cout.flush();
   return 0;
 }
 #endif
