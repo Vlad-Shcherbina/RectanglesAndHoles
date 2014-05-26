@@ -84,6 +84,7 @@ public:
         transform(t, corner.origin.X, corner.origin.Y, false, false, false);
         transform(t, 0, 0, corner.flip_x, corner.flip_y, false);
         copy(t.begin(), t.end(), back_inserter(solution.back()));
+        remove_used_boxes(t, sorted_boxes);
         solved = true;
         break;
       }

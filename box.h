@@ -83,6 +83,19 @@ vector<BoxPlacement> repack_placements(vector<vector<BoxPlacement>> bpss) {
 }
 
 
+void remove_used_boxes(const vector<BoxPlacement> &bps, vector<Box> &boxes) {
+  set<int> indices;
+  for (auto bp : bps) {
+    indices.insert(bp.index);
+  }
+  auto p = remove_if(boxes.begin(), boxes.end(), [&indices](Box b) {
+    return indices.find(b.index) != indices.end();
+  });
+  assert(boxes.end() - p == bps.size());
+  boxes.erase(p, boxes.end());
+}
+
+
 void transform(
   vector<BoxPlacement> &bps,
   int dx, int dy, bool mirror_x, bool mirror_y, bool mirror_xy) {

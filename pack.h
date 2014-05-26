@@ -9,7 +9,7 @@ struct SearchState {
 class Packer {
 public:
   Coord size;
-  vector<Box> *boxes;
+  const vector<Box> *boxes;
   vector<BoxPlacement> symbolic_bps;
 
   Shortest xs, ys;
@@ -136,7 +136,7 @@ public:
     return true;
   }
 
-  bool solve(vector<Box> *boxes) {
+  bool solve(const vector<Box> *boxes) {
     this->boxes = boxes;
 
     SearchState ss;
@@ -185,13 +185,6 @@ public:
           concrete_ys[sbp.top_right.Y]};
       result.push_back(bp);
     }
-
-    // remove used boxes from the list
-    auto p = remove_if(boxes->begin(), boxes->end(), [this](Box b) {
-      return find(box_indices.begin(), box_indices.end(), b.index) != box_indices.end();
-    });
-    boxes->erase(p, boxes->end());
-
     return result;
   }
 
