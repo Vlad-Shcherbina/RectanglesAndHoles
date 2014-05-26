@@ -20,32 +20,6 @@ using namespace std;
 #include "pack.h"
 
 
-bool place_in_corner(vector<BoxPlacement> &bps, vector<Box> &boxes) {
-  if (boxes.size() < 2)
-    return false;
-  auto lc = find_largest_corner(bps);
-  cerr << "largest corner: " << lc << endl;
-
-  for (int i = 0; i < boxes.size(); i++) {
-    if (boxes[i].b <= lc.second.Y - lc.first.Y) {
-      int j = i ? 0 : 1;
-      bps.push_back(BoxPlacement::from_box(
-          boxes[i], {min(lc.second.X, lc.first.X + boxes[j].a), lc.first.Y}));
-      bps.push_back(BoxPlacement::from_box(
-          boxes[j], {lc.first.X, lc.first.Y + boxes[i].b}));
-      assert(i != j);
-      if (i < j)
-        swap(i, j);
-      boxes.erase(boxes.begin() + i);
-      boxes.erase(boxes.begin() + j);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-
 class RectanglesAndHoles {
 public:
   vector<Box> boxes;
@@ -105,8 +79,6 @@ public:
       if (!solved)
         break;
     }
-
-    //while (place_in_corner(solution.back(), sorted_boxes)) {}
 
     for (auto box : sorted_boxes) {
       solution.emplace_back();
