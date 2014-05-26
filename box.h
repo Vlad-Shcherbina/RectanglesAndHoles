@@ -119,20 +119,33 @@ int find_intersection(
 }
 
 
-pair<Coord, Coord> find_largest_corner(const vector<BoxPlacement> &bps) {
+struct Corner {
+  Coord origin;
+  int w, h;
+  bool flip_x;
+  bool flip_y;
+  bool inside;
+};
+
+
+vector<Corner> find_positive_corners(
+    const vector<BoxPlacement> &bps, int clearance = 2000) {
   set<Coord> candidates;
   for (auto bp : bps) {
     candidates.insert({bp.bottom_left.X, bp.top_right.Y});
     candidates.insert({bp.top_right.X, bp.bottom_left.Y});
   }
-  int best_area = -1;
-  pair<Coord, Coord> best = {{0, 0}, {0, 0}};
+  vector<Corner> result;
   for (auto cand : candidates) {
-    if (find_intersection(bps, cand, Coord(cand.X + 2000, cand.Y + 2000)) != -1)
+    if (find_intersection(bps, cand, Coord(cand.X + clearance, cand.Y + clearance)) != -1)
       continue;
-    if (find_intersection(bps, cand, Coord(cand.X + 1, cand.Y + 2000000)) != -1 &&
-        find_intersection(bps, cand, Coord(cand.X + 2000000, cand.Y + 1)) != -1)
-      continue;
+    Corner corner;
+    corner.flip_x = false;
+    corner.flip_y = false;
+    corner.inside = (
+        find_intersection(bps, cand, Coord(cand.X + 1, cand.Y + 2000000)) != -1 &&
+        find_intersection(bps, cand, Coord(cand.X + 2000000, cand.Y + 1)) != -1);
+
     int i1 = find_intersection(
         bps, Coord(cand.X, cand.Y - 1), Coord(cand.X + 1, cand.Y));
     if (i1 == -1)
@@ -141,12 +154,55 @@ pair<Coord, Coord> find_largest_corner(const vector<BoxPlacement> &bps) {
         bps, Coord(cand.X - 1, cand.Y), Coord(cand.X, cand.Y + 1));
     if (i2 == -1)
       continue;
-    pair<Coord, Coord> cur = {cand, {bps[i1].top_right.X, bps[i2].top_right.Y}};
-    int area = (cur.second.X - cur.first.X) * (cur.second.Y - cur.first.Y);
-    if (area > best_area) {
-      best_area = area;
-      best = cur;
+    corner.w = bps[i1].top_right.X - cand.X;
+    corner.h = bps[i2].top_right.Y - cand.Y;
+
+    corner.origin = cand;
+    result.push_back(corner);
+  }
+  return result;
+}
+
+vector<Corner> find_all_corners(vector<BoxPlacement> bps, int clearance = 2000) {
+  vector<Corner> result = find_positive_corners(bps, clearance);
+
+  transform(bps, 0, 0, true, false, false);
+  auto t = find_positive_corners(bps, clearance);
+  for (auto &c : t) {
+    c.flip_x = true;
+  }
+  copy(t.begin(), t.end(), back_inserter(result));
+
+  transform(bps, 0, 0, false, true, false);
+  t = find_positive_corners(bps, clearance);
+  for (auto &c : t) {
+    c.flip_x = true;
+    c.flip_y = true;
+  }
+  copy(t.begin(), t.end(), back_inserter(result));
+
+  transform(bps, 0, 0, true, false, false);
+  t = find_positive_corners(bps, clearance);
+  for (auto &c : t) {
+    c.flip_y = true;
+  }
+  copy(t.begin(), t.end(), back_inserter(result));
+
+  return result;
+}
+
+Corner find_best_corner(const vector<BoxPlacement> &bps, int clearance = 2000) {
+  int best_score = -1;
+  Corner best_corner;
+  for (auto c : find_all_corners(bps, clearance)) {
+    int score = c.w * c.h;
+    if (c.inside)
+      continue;
+    if (score > best_score) {
+      best_score = score;
+      best_corner = c;
     }
   }
-  return best;
+  assert(best_score > 0);
+  return best_corner;
 }

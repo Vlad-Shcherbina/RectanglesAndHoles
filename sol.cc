@@ -51,18 +51,29 @@ public:
 
     solution.push_back(make_circle(for_circle));
 
-    int i = 0;
+    int max_size = -1;
+    for (auto box : sorted_boxes) {
+      max_size = max(max_size, max(box.a, box.b));
+    }
+    cerr << "max size " << max_size << endl;
+    auto corners = find_all_corners(solution.back(), 2 * max_size);
+    cerr << corners.size() << " corners" << endl;
+    int cnt = 0;
+    for (auto c : corners) {
+      if (c.w >= max_size && c.h >= max_size)
+        cnt++;
+    }
+    cerr << cnt << " max corners" << endl;
+
     while (true) {
-      bool flip_x = i % 2 == 0;
-      bool flip_y = i / 2 % 2 == 0;
-      i++;
+      int max_size = -1;
+      for (auto box : sorted_boxes) {
+        max_size = max(max_size, max(box.a, box.b));
+      }
 
-      auto hz = solution.back();
-      transform(hz, 0, 0, flip_x, flip_y, false);
+      Corner corner = find_best_corner(solution.back(), 2 * max_size);
 
-      auto lc = find_largest_corner(hz);
-      // cerr << "largest corner: " << lc << endl;
-      auto packers = make_packers(Coord(lc.second.X - lc.first.X, lc.second.Y - lc.first.Y));
+      auto packers = make_packers(Coord(corner.w, corner.h));
 
       bool solved = false;
       for (auto &packer : packers) {
@@ -70,8 +81,8 @@ public:
           continue;
         auto t = packer.place();
         cerr << t.size() << " blocks" << endl;
-        transform(t, lc.first.X, lc.first.Y, false, false, false);
-        transform(t, 0, 0, flip_x, flip_y, false);
+        transform(t, corner.origin.X, corner.origin.Y, false, false, false);
+        transform(t, 0, 0, corner.flip_x, corner.flip_y, false);
         copy(t.begin(), t.end(), back_inserter(solution.back()));
         solved = true;
         break;
