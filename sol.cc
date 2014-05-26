@@ -77,7 +77,7 @@ public:
 
       bool solved = false;
       for (auto &packer : packers) {
-        if (!packer.solve(&sorted_boxes))
+        if (!packer.solve(both_orientations(sorted_boxes)))
           continue;
         auto t = packer.place();
         cerr << t.size() << " blocks" << endl;

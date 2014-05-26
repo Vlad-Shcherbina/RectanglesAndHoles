@@ -9,7 +9,6 @@ struct SearchState {
 class Packer {
 public:
   Coord size;
-  const vector<Box> *boxes;
   vector<BoxPlacement> symbolic_bps;
 
   Shortest xs, ys;
@@ -78,10 +77,6 @@ public:
     ys.add_constraint(b1.top_right.Y, b2.bottom_left.Y, -1);
   }
 
-  /*vector<Box> matching_candidates() {
-
-  }*/
-
   bool strengthen_constraints(SearchState &ss) {
     assert(!xs.empty && !ys.empty);
     assert(symbolic_bps.size() == ss.candidates.size());
@@ -136,19 +131,9 @@ public:
     return true;
   }
 
-  bool solve(const vector<Box> *boxes) {
-    this->boxes = boxes;
-
+  bool solve(const vector<Box> all_candidates) {
     SearchState ss;
     ss.concrete = vector<bool>(symbolic_bps.size(), false);
-    vector<Box> all_candidates;
-    for (auto box : *boxes) {
-      all_candidates.push_back(box);
-      if (box.a != box.b) {
-        swap(box.a, box.b);
-        all_candidates.push_back(box);
-      }
-    }
     ss.candidates = vector<vector<Box>>(symbolic_bps.size(), all_candidates);
     ss.taken_boxes = vector<bool>(1000, false);
 

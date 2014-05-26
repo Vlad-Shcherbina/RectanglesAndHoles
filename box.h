@@ -96,6 +96,19 @@ void remove_used_boxes(const vector<BoxPlacement> &bps, vector<Box> &boxes) {
 }
 
 
+vector<Box> both_orientations(const vector<Box> &boxes) {
+  vector<Box> result;
+  for (auto box : boxes) {
+    result.push_back(box);
+    if (box.a != box.b) {
+      swap(box.a, box.b);
+      result.push_back(box);
+    }
+  }
+  return result;
+}
+
+
 void transform(
   vector<BoxPlacement> &bps,
   int dx, int dy, bool mirror_x, bool mirror_y, bool mirror_xy) {
