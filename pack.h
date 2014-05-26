@@ -88,6 +88,7 @@ public:
     assert(!xs.empty && !ys.empty);
     assert(symbolic_bps.size() == ss.candidates.size());
     for (int i = 0; i < symbolic_bps.size(); i++) {
+      auto &candidates = ss.candidates[i];
       if (ss.concrete[i]) {
         assert(ss.candidates[i].size() == 1);
         assert(ss.taken_boxes[ss.candidates[i].front().index]);
@@ -101,31 +102,30 @@ public:
       int min_h = -ys.get_diff(sbp.bottom_left.Y, sbp.top_right.Y);
 
       vector<Box> new_candidates;
-      for (const auto &cand : ss.candidates[i]) {
-        if (cand.a >= min_w && cand.a <= max_w &&
-            cand.b >= min_h && cand.b <= max_h &&
-            !ss.taken_boxes[cand.index]) {
-          new_candidates.push_back(cand);
-        }
-      }
+      auto p = remove_if(candidates.begin(), candidates.end(),
+          [min_w, max_w, min_h, max_h, &ss](const Box &cand) {
+            return !(
+                cand.a >= min_w && cand.a <= max_w &&
+                cand.b >= min_h && cand.b <= max_h &&
+                !ss.taken_boxes[cand.index]);
+          });
+      if (p == candidates.begin())
+        return false;
+
+      candidates.erase(p, candidates.end());
 
       min_w = INF;
       min_h = INF;
       max_w = -INF;
       max_h = -INF;
 
-      //assert(!new_candidates.empty());
-      if (new_candidates.empty())
-        return false;
-
-      for (auto cand : new_candidates) {
+      for (auto cand : candidates) {
         min_w = min(min_w, cand.a);
         min_h = min(min_h, cand.b);
         max_w = max(max_w, cand.a);
         max_h = max(max_h, cand.b);
       }
 
-      ss.candidates[i] = new_candidates;
       xs.add_constraint(sbp.top_right.X, sbp.bottom_left.X, max_w);
       xs.add_constraint(sbp.bottom_left.X, sbp.top_right.X, -min_w);
       if (xs.empty)
