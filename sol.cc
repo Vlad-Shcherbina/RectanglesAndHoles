@@ -20,6 +20,36 @@ using namespace std;
 #include "pack.h"
 
 
+vector<Corner> candidate_corners(
+    const vector<BoxPlacement> &bps, int clearance, int limit) {
+  vector<Corner> result;
+  vector<BoxPlacement> bbs;
+
+  vector<Corner> corners = find_all_corners(bps, clearance);
+  sort(corners.begin(), corners.end(),
+      [](const Corner &c1, const Corner &c2) {
+        auto scoring_fn = [](const Corner &c) { return c.w * c.h; };
+        return scoring_fn(c1) > scoring_fn(c2);
+      });
+  for (const auto &corner : corners) {
+    bool clear = true;
+    auto new_bb = corner.bounding_box(clearance, clearance);
+    for (const auto &bb : bbs)
+      if (new_bb.intersect(bb)) {
+        clear = false;
+        break;
+      }
+    if (clear) {
+      result.push_back(corner);
+      bbs.push_back(new_bb);
+      if (result.size() >= limit)
+        break;
+    }
+  }
+  return result;
+}
+
+
 class RectanglesAndHoles {
 public:
   vector<Box> boxes;
@@ -56,14 +86,8 @@ public:
       max_size = max(max_size, max(box.a, box.b));
     }
     cerr << "max size " << max_size << endl;
-    auto corners = find_all_corners(solution.back(), 2 * max_size);
-    cerr << corners.size() << " corners" << endl;
-    int cnt = 0;
-    for (auto c : corners) {
-      if (c.w >= max_size && c.h >= max_size)
-        cnt++;
-    }
-    cerr << cnt << " max corners" << endl;
+    auto ccs = candidate_corners(solution.back(), 2 * max_size, sorted_boxes.size() / 4);
+    cerr << ccs << endl;
 
     while (true) {
       int max_size = -1;

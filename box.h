@@ -32,6 +32,10 @@ struct BoxPlacement {
     return max(bottom_left.X, c1.X) < min(top_right.X, c2.X) &&
            max(bottom_left.Y, c1.Y) < min(top_right.Y, c2.Y);
   }
+
+  bool intersect(const BoxPlacement &bp) const {
+    return intersect(bp.bottom_left, bp.top_right);
+  }
 };
 
 
@@ -151,7 +155,37 @@ struct Corner {
   bool flip_x;
   bool flip_y;
   bool inside;
+
+  BoxPlacement bounding_box(int w, int h) const {
+    int x1 = origin.X;
+    int x2 = origin.X + w;
+    int y1 = origin.Y;
+    int y2 = origin.Y + h;
+    if (flip_x) {
+      swap(x1, x2);
+      x1 *= -1;
+      x2 *= -1;
+    }
+    if (flip_y) {
+      swap(y1, y2);
+      y1 *= -1;
+      y2 *= -1;
+    }
+    BoxPlacement result;
+    result.index = -1;
+    result.bottom_left = {x1, y1};
+    result.top_right = {x2, y2};
+    return result;
+  }
 };
+
+
+ostream& operator<<(ostream &out, const Corner &c) {
+  if (c.inside)
+    out << "Inside";
+  out << "Corner(w=" << c.w << ", h=" << c.h << ")";
+  return out;
+}
 
 
 vector<Corner> find_positive_corners(
