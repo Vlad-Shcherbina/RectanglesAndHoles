@@ -38,6 +38,13 @@ struct BoxPlacement {
   }
 };
 
+ostream& operator<<(ostream &out, const BoxPlacement &bp) {
+  out << "BoxPlacement(" << bp.index
+      << ", " << bp.bottom_left
+      << ", " << bp.top_right << ")";
+  return out;
+}
+
 
 pair<Coord, Coord> placements_bb(vector<BoxPlacement> bps) {
   Coord c1(INF, INF);
